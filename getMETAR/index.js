@@ -25,8 +25,8 @@ contentPromise.then(content => {
     const currDate = new Date()
 
     const data = {
-      year: currDate.getFullYear(),
-      month: currDate.getMonth() + 1, // javascript months are 0-based index
+      year: currDate.getUTCFullYear(),
+      month: currDate.getUTCMonth() + 1, // javascript months are 0-based index
       day: Number(timestamp.substr(0, 2)), // first two digits of timestamp are day of month
       hour: Number(timestamp.substr(2, 2)), // second two digits of timestamp are hour in 24 hr UTC time
       minute: Number(timestamp.substr(4, 2)), // third two digits of timestamp are minutes past the hour
@@ -36,6 +36,7 @@ contentPromise.then(content => {
     // save data to the database, if not exists
     database.find(data, function (err, results) {
       if (results.length === 0) {
+        console.log('Found new entry:', JSON.stringify(data, undefined, 2))
         database.insert(data)
       }
     })
