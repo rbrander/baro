@@ -13,7 +13,8 @@ const formatRecord = record =>
 const setMostRecent = (mostRecentRecord) => {
   const timezoneOffsetInHours = (new Date().getTimezoneOffset() / 60)
   const correctedHour = (24 + mostRecentRecord.hour - timezoneOffsetInHours) % 24
-  const mostRecentTime = `${correctedHour > 12 ? correctedHour - 12 : correctedHour}${correctedHour >= 12 ? 'pm' : 'am'}`
+  const minutes = mostRecentRecord.minute === 0 ? '' : `:${pad(mostRecentRecord.minute)}`
+  const mostRecentTime = `${correctedHour > 12 ? correctedHour - 12 : correctedHour}${minutes}${correctedHour >= 12 ? 'pm' : 'am'}`
   const mostRecentValue = mostRecentRecord.inchesOfMercury.toFixed(2)
   document.getElementById('mostRecent').innerText = `The most recent measurement is ${mostRecentValue}" Hg (${mostRecentTime} local-time)`
 }
