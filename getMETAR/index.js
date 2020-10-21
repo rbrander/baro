@@ -13,7 +13,7 @@ const getContentFromWeb = () => {
 }
 
 // Regular expression to extract timestamp and altimeter reading
-const METAR_REGEX = /^METAR CYTZ (\d{6})Z .* A(\d{4}) .*$/gm
+const METAR_REGEX = /^(METAR|SPECI) CYTZ (\d{6})Z .* A(\d{4}) .*$/gm
 
 const contentPromise = getContentFromWeb()
 contentPromise.then(content => {
@@ -21,7 +21,7 @@ contentPromise.then(content => {
   const matches = content.match(METAR_REGEX)
   matches.forEach(METAR => {
     METAR_REGEX.lastIndex = 0 // need to reset the index due to global modifier on regex
-    const [, timestamp, altimeter] = METAR_REGEX.exec(METAR)
+    const [,, timestamp, altimeter] = METAR_REGEX.exec(METAR)
     const currDate = new Date()
 
     const data = {
