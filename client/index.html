@@ -8,12 +8,14 @@
   <style>
     body { font-family: sans-serif; color: white; background-color: black; }
     #results { font-family: Courier; }
+    #canvas { width: 100%; }
   </style>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nedb/1.8.0/nedb.min.js"></script>
 </head>
 <body>
   <h1>Barometric Pressure at CYTZ</h1>
   <p>The barometric pressure has been collected from AWWS and displayed here for identifying patterns</p>
+  <div id="graph"><canvas id="canvas"></canvas></div>
   <div id="mostRecent"></div>
   <br />
   <div id="results"></div>
