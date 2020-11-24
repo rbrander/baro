@@ -25,6 +25,8 @@ const SORT_ASCENDING = 1
 const SORT_DESCENDING = -1
 const MIDDLE_PRESSURE = 29.92 // inches of mercury, where High and Low pressures are determined
 const MAX_GRAPH_WIDTH = 400 // pixels
+const HIGH_PRESSURE_COLOUR = '#0C234BBB'
+const LOW_PRESSURE_COLOUR = '#AB052066'
 
 const drawGraph = async () => {
   const canvas = document.getElementById('canvas')
@@ -56,9 +58,9 @@ const drawGraph = async () => {
   ctx.stroke()
 
   // draw background colours
-  ctx.fillStyle = '#AB052066'
+  ctx.fillStyle = HIGH_PRESSURE_COLOUR
   ctx.fillRect(axisPadding, axisPadding, (canvas.width - axisPadding * 2), (canvas.height / 2) - axisPadding)
-  ctx.fillStyle = '#0C234BBB'
+  ctx.fillStyle = LOW_PRESSURE_COLOUR
   ctx.fillRect(axisPadding, canvas.height / 2, (canvas.width - axisPadding * 2), (canvas.height / 2) - axisPadding)
 
   // draw middle dashed line for 29.92" Hg
