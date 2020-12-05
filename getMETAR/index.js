@@ -23,11 +23,21 @@ contentPromise.then(content => {
     METAR_REGEX.lastIndex = 0 // need to reset the index due to global modifier on regex
     const [,, timestamp, altimeter] = METAR_REGEX.exec(METAR)
     const currDate = new Date()
-
+    const day = Number(timestamp.substr(0, 2))  // first two digits of timestamp are day of month
+    
+    // Since the current date is assuming the date of month is the same,
+    // if they are different, the currDate should be rolled back one day.
+    // This will ensure year and month will be correctly assigned
+    if (day != currDate.getUTCDate()) {
+      currDate.setDate(currDate.getDate()-1);
+    }
+    
+    const month = 
+    currDate.getUTCDate() // day of month in UTC
     const data = {
       year: currDate.getUTCFullYear(),
       month: currDate.getUTCMonth() + 1, // javascript months are 0-based index
-      day: Number(timestamp.substr(0, 2)), // first two digits of timestamp are day of month
+      day,
       hour: Number(timestamp.substr(2, 2)), // second two digits of timestamp are hour in 24 hr UTC time
       minute: Number(timestamp.substr(4, 2)), // third two digits of timestamp are minutes past the hour
       inchesOfMercury: Number(altimeter) / 100 // barometric pressure in inches of mercury
