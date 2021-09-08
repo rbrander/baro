@@ -4,6 +4,7 @@
 // version of NeDB doesn't have access to the disk, so it uses IndexedDB
 
 const db = new Nedb({ filename: 'altimeter.db', inMemoryOnly: true })
+const ALTIMETER_DB_URL = './altimeter.db'
 
 // utility functions
 const pad = value => value.toString().padStart(2, '0')
@@ -47,7 +48,7 @@ const drawGraph = async () => {
   // draw border
   ctx.strokeStyle = 'white'
   ctx.lineWidth = 3
-  ctx.strokeRect(0, 0, canvas.width-1, canvas.height -1)
+  ctx.strokeRect(0, 0, canvas.width, canvas.height)
 
   // draw axis
   const axisPadding = 50
@@ -97,7 +98,6 @@ const drawGraph = async () => {
     }
   */
   // get the range of values (min and max)
-
   const getInchesOfMercury = sortDirection => 
     new Promise((resolve, reject) => {
       db.findOne({})
@@ -119,7 +119,6 @@ const drawGraph = async () => {
   const idealRange = Math.max(lowRange, highRange) + 0.1
   const rangeMax = (MIDDLE_PRESSURE + idealRange).toFixed(2)
   const rangeMin = (MIDDLE_PRESSURE - idealRange).toFixed(2)
-
 
   // pressure range labels
   ctx.fillStyle = '#cccccccc'
@@ -157,7 +156,7 @@ const drawGraph = async () => {
     ctx.fill()
     ctx.stroke()
   }
-  // TODO: draw lines between points
+  // TODO: draw lines between points?
 
   // TODO: dynamically calcualte NUN_HRS based on canvas size
 
@@ -181,35 +180,50 @@ const drawGraph = async () => {
 }
 
 // load the database, one record at a time
-console.log('Baro')
-fetch('./altimeter.db')
-  .then(response => response.text())
-  .then(responseText => {
-    // each line contains one record
-    const lines = responseText.split('\n').filter(line => line.length > 0)
-    return lines.map(line => JSON.parse(line))
-  })
-  .then(records => {
-    // insert the records into our local database
-    // ps = promise
-    const psInsert = data => new Promise((resolve, reject) => {
-      db.insert({ ...data, timestamp: formatTimestamp(data) }, (err) => err ? reject(err) : resolve())
+const loadDatabase = () => {
+  fetch(ALTIMETER_DB_URL)
+    .then(response => response.text())
+    .then(responseText => {
+      // each line contains one record
+      const lines = responseText.split('\n').filter(line => line.length > 0)
+      return lines.map(line => JSON.parse(line))
     })
-    Promise
-      .allSettled(records.map(psInsert))
-      .then(() => { drawGraph() })
+    .then(records => {
+      // insert the records into our local database
+      // ps = promise
+      const psInsert = data => new Promise((resolve, reject) => {
+        db.insert({ ...data, timestamp: formatTimestamp(data) }, (err) => err ? reject(err) : resolve())
+      })
+      Promise
+        .allSettled(records.map(psInsert))
+        .then(() => { drawGraph() })
 
-    ////////////////////////////////////////
+      ////////////////////////////////////////
 
-    // TODO: refactor to render the the data from the database
+      // TODO: refactor to render the the data from the database
 
-    // display formatted records, sorted by reverse chronological order (most recent first)
-    const formattedRecords = records.map(record => formatRecord(record)).sort().reverse()
-    if (formattedRecords.length > 0) {
-      setMostRecent(records.find(record => formatRecord(record) === formattedRecords[0]))
-      document.getElementById('results').innerHTML = `Found ${formattedRecords.length} records:<br>` + formattedRecords.join('<br>')
-    } else {
-      document.getElementById('mostRecent').innerHTML = ''
-      document.getElementById('results').innerHTML = 'No data'
-    }
-  })
+      // display formatted records, sorted by reverse chronological order (most recent first)
+      const formattedRecords = records.map(record => formatRecord(record)).sort().reverse()
+      if (formattedRecords.length > 0) {
+        setMostRecent(records.find(record => formatRecord(record) === formattedRecords[0]))
+        document.getElementById('results').innerHTML = `Found ${formattedRecords.length} records:<br>` + formattedRecords.join('<br>')
+      } else {
+        document.getElementById('mostRecent').innerHTML = ''
+        document.getElementById('results').innerHTML = 'No data'
+      }
+    })
+}
+
+const updateData = () => {
+
+}
+
+const onFocus = () => {
+  updateData()
+}
+
+;(function init() {
+  console.log('Baro')
+  loadDatabase()
+  window.addEventListener('focus', onFocus)
+})()
