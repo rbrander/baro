@@ -4,13 +4,14 @@
 // version of NeDB doesn't have access to the disk, so it uses IndexedDB
 
 const db = new Nedb({ filename: 'altimeter.db', inMemoryOnly: true })
-const ALTIMETER_DB_URL = './altimeter.db'
+// const ALTIMETER_DB_URL = './altimeter.db'
+const DATA_URL = './most-recent-cytz.json'
 
 // utility functions
 const pad = value => value.toString().padStart(2, '0')
 const formatTimestamp = record => `${record.year}-${pad(record.month)}-${pad(record.day)}@${pad(record.hour)}:${pad(record.minute)}Z`
 const formatRecord = record =>
-  `${formatTimestamp(record)} = ${record.inchesOfMercury.toFixed(2)}" Hg (mercury)`
+  `${formatTimestamp(record)} = ${record.inchesOfMercury.toFixed(2)}" Hg`
 
 const setMostRecent = (mostRecentRecord) => {
   const timezoneOffsetInHours = (new Date().getTimezoneOffset() / 60)
@@ -18,7 +19,8 @@ const setMostRecent = (mostRecentRecord) => {
   const minutes = mostRecentRecord.minute === 0 ? '' : `:${pad(mostRecentRecord.minute)}`
   const mostRecentTime = `${correctedHour > 12 ? correctedHour - 12 : correctedHour}${minutes}${correctedHour >= 12 ? 'pm' : 'am'}`
   const mostRecentValue = mostRecentRecord.inchesOfMercury.toFixed(2)
-  document.getElementById('mostRecent').innerText = `The most recent measurement is ${mostRecentValue}" Hg (${mostRecentTime} local-time)`
+  const timezone = new Date().toString().match(/\((.*)\)/)[1]
+  document.getElementById('mostRecent').innerHTML = `${mostRecentValue}" as of ${mostRecentTime} ${timezone}`
 }
 
 // application constants
@@ -41,7 +43,7 @@ const drawGraph = async () => {
   // algin the CSS size with the canvas resolution
   canvas.width = canvas.getBoundingClientRect().width
   canvas.height = canvas.width / 1.4 // 1.4 is aspect ratio we want
-  
+
   // offset pixels by half a pixel to get crisp lines
   ctx.translate(0.5,0.5)
 
@@ -98,7 +100,8 @@ const drawGraph = async () => {
     }
   */
   // get the range of values (min and max)
-  const getInchesOfMercury = sortDirection => 
+  /*
+  const getInchesOfMercury = sortDirection =>
     new Promise((resolve, reject) => {
       db.findOne({})
         .sort({ inchesOfMercury: sortDirection })
@@ -110,11 +113,13 @@ const drawGraph = async () => {
           }
         })
     })
-  const min = await getInchesOfMercury(SORT_ASCENDING)
-  const max = await getInchesOfMercury(SORT_DESCENDING)
+  */
+  // Hard-coding the bounds for performance
+  const max = 31.00 // await getInchesOfMercury(SORT_DESCENDING)
+  const min = 29.00 // await getInchesOfMercury(SORT_ASCENDING)
   const highRange = max - MIDDLE_PRESSURE
   const lowRange = MIDDLE_PRESSURE - min
-  // determine the ideal range by using the largest of the two ranges 
+  // determine the ideal range by using the largest of the two ranges
   // and adding on a buffer
   const idealRange = Math.max(lowRange, highRange) + 0.1
   const rangeMax = (MIDDLE_PRESSURE + idealRange).toFixed(2)
@@ -181,6 +186,7 @@ const drawGraph = async () => {
 
 // load the database, one record at a time
 const loadDatabase = () => {
+  /*
   fetch(ALTIMETER_DB_URL)
     .then(response => response.text())
     .then(responseText => {
@@ -188,7 +194,11 @@ const loadDatabase = () => {
       const lines = responseText.split('\n').filter(line => line.length > 0)
       return lines.map(line => JSON.parse(line))
     })
+  */
+  fetch(DATA_URL)
+    .then(response => response.json())
     .then(records => {
+      console.log({records})
       // insert the records into our local database
       // ps = promise
       const psInsert = data => new Promise((resolve, reject) => {
