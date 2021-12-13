@@ -78,7 +78,7 @@ HTMLContentPromise.then(HTMLcontent => {
   // matches is an array of METAR lines
   const matches = HTMLcontent.match(METAR_REGEX)
   const parsedMETARs = matches.map(parseMETAR)
-  const dbInsertPromises = parsedMETARs.map(parsedData =>
+  const dbInsertPromises = parsedMETARs.map(data =>
     new Promise((resolve, reject) => {
       db.find(data, function (err, results) {
         if (err) {
@@ -92,8 +92,9 @@ HTMLContentPromise.then(HTMLcontent => {
               resolve(newDoc)
             }
           })
+        } else {
+          resolve()
         }
-        resolve()
       })
     })
   )
